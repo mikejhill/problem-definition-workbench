@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="system">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f4f1e8" />
+    <link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
     <meta
       name="description"
       content="Model a problem once, then render it into prompts, briefs, questionnaires, and diagrams."
@@ -21,6 +22,12 @@
     />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Problem Definition Workbench</title>
+    <script>
+      try {
+        const theme = localStorage.getItem("pdw-theme");
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
