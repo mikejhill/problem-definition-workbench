@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - firebase.json
+      - remoteconfig.template.json
       - package-lock.json
       - package.json
       - .github/workflows/firebase.yml
@@ -16,7 +17,7 @@ permissions:
 
 jobs:
   deploy:
-    if: ${{ vars.FIREBASE_PROJECT_ID != '' && vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' && vars.GCP_SERVICE_ACCOUNT != '' }}
+    if: ${{ vars.FIREBASE_PROJECT_ID != '' && vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +28,6 @@ jobs:
       - run: npm ci
       - uses: google-github-actions/auth@v3
         with:
+          project_id: ${{ vars.FIREBASE_PROJECT_ID }}
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
       - run: npx firebase-tools deploy --only firestore:rules,firestore:indexes --project "${{ vars.FIREBASE_PROJECT_ID }}" --non-interactive

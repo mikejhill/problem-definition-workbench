@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp, type FirebaseOptions } from "firebase/app";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import {
   GoogleAuthProvider,
   getAuth,
@@ -126,6 +126,7 @@ function principalFromUser(user: User | null): FirebasePrincipal | null {
 export class FirebaseServices {
   private readonly app: FirebaseApp;
   private readonly runtime: FirebaseRuntime;
+  private appCheckInitialized = false;
   public readonly identity: FirebaseIdentity;
   public readonly store: FirebaseDocumentStore<
     ProblemDefinitionDocumentV1,
@@ -144,14 +145,6 @@ export class FirebaseServices {
       app: this.app,
       getAuth,
       getFirestore,
-      initializeAppCheck: (app) => {
-        const siteKey = import.meta.env.VITE_FIREBASE_APPCHECK_SITE_KEY;
-        if (!siteKey) return;
-        initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider(siteKey),
-          isTokenAutoRefreshEnabled: true,
-        });
-      },
     });
     this.identity = new FirebaseIdentity(this.runtime);
     this.store = new FirebaseDocumentStore(this.runtime, problemDefinition, {
@@ -205,8 +198,7 @@ export class FirebaseServices {
     const principal = this.state.principal;
     if (!principal || principal.anonymous || !principal.verified)
       throw new Error("A signed-in account is required for AI assistance.");
-    // The runtime owns one lazy App Check initialization for both Firestore and AI.
-    this.runtime.firestore();
+    this.ensureAppCheck();
     const remoteConfig = getRemoteConfig(this.app);
     remoteConfig.settings.minimumFetchIntervalMillis = 3_600_000;
     remoteConfig.defaultConfig = { workbench_ai_model: "gemini-2.5-flash-lite" };
@@ -293,6 +285,18 @@ export class FirebaseServices {
 
   private emit(): void {
     for (const listener of this.listeners) listener();
+  }
+
+  private ensureAppCheck(): void {
+    if (this.appCheckInitialized) return;
+    const siteKey = import.meta.env.VITE_FIREBASE_APPCHECK_ENTERPRISE_SITE_KEY;
+    if (!siteKey)
+      throw new Error("App Check is not configured for AI assistance in this deployment.");
+    initializeAppCheck(this.app, {
+      provider: new ReCaptchaEnterpriseProvider(siteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+    this.appCheckInitialized = true;
   }
 }
 

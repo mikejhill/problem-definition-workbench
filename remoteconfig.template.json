@@ -1,0 +1,11 @@
+{
+  "parameters": {
+    "workbench_ai_model": {
+      "defaultValue": {
+        "value": "gemini-2.5-flash-lite"
+      },
+      "description": "Flash-class model used for explicit Problem Definition Workbench AI review actions.",
+      "valueType": "STRING"
+    }
+  }
+}

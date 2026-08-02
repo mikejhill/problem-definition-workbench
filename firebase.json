@@ -1,7 +1,20 @@
 {
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Problem Definition Workbench",
+        "supportEmail": "squarecast.info@gmail.com",
+        "authorizedRedirectUris": ["https://mikejhill.github.io/problem-definition-workbench/"]
+      }
+    }
+  },
   "firestore": {
     "rules": "node_modules/@mikejhill/portable-document-firebase/rules/firestore.rules",
     "indexes": "node_modules/@mikejhill/portable-document-firebase/rules/firestore.indexes.json"
+  },
+  "remoteconfig": {
+    "template": "remoteconfig.template.json"
   },
   "emulators": {
     "firestore": { "port": 8080 },
