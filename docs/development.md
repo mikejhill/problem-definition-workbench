@@ -30,7 +30,7 @@ Domain files must not import React, Firebase, browser APIs, or persistence adapt
 
 ## Firebase deployment
 
-`firebase.json` deploys rules and indexes directly from the Portable Document Kit package. The GitHub workflow uses direct workload identity federation restricted to the repository's immutable ID and the `main` branch. It requires repository variables `FIREBASE_PROJECT_ID` and `GCP_WORKLOAD_IDENTITY_PROVIDER`; no service-account key or impersonation account is used.
+`firebase.json` deploys rules and indexes directly from the Portable Document Kit package. The GitHub workflow uses workload identity federation restricted to the repository's immutable ID and the `main` branch, then impersonates a least-privilege deployment service account. It requires repository variables `FIREBASE_PROJECT_ID`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, and `GCP_SERVICE_ACCOUNT`; no service-account key is created or stored.
 
 ## Release
 
