@@ -9,8 +9,8 @@ const { getErrStatus } = require("firebase-tools/lib/error");
 const projectId = "problem-definition-workbench";
 const projectNumber = "567734106058";
 const repositoryId = "1320409706";
-const legacyServiceAccount =
-  "github-firebase-deployer@problem-definition-workbench.iam.gserviceaccount.com";
+const serviceAccountId = "github-firebase-deployer";
+const serviceAccount = `${serviceAccountId}@${projectId}.iam.gserviceaccount.com`;
 const poolId = "github-actions";
 const providerId = "problem-definition-workbench";
 const poolName = `projects/${projectNumber}/locations/global/workloadIdentityPools/${poolId}`;
@@ -51,10 +51,10 @@ function mergeBinding(policy, role, member) {
   if (!binding.members.includes(member)) binding.members.push(member);
 }
 
-function removeMember(policy, member) {
-  for (const binding of policy.bindings ?? []) {
+function removeBindingMember(policy, role, member) {
+  const binding = (policy.bindings ?? []).find((candidate) => candidate.role === role);
+  if (binding)
     binding.members = (binding.members ?? []).filter((candidate) => candidate !== member);
-  }
   policy.bindings = (policy.bindings ?? []).filter((binding) => binding.members.length > 0);
 }
 
@@ -62,6 +62,7 @@ async function main() {
   const account = auth.getGlobalDefaultAccount();
   if (!account) throw new Error("Run firebase login before provisioning workload identity.");
   auth.setActiveAccount({}, account);
+  const operator = `user:${account.user.email}`;
 
   await Promise.all(
     ["iam.googleapis.com", "iamcredentials.googleapis.com", "sts.googleapis.com"].map((api) =>
@@ -100,21 +101,58 @@ async function main() {
     await waitFor(iam, providerName);
   }
 
-  const projectPolicy = (await resourceManager.post(`projects/${projectId}:getIamPolicy`, {})).body;
   const repositoryPrincipal = `principalSet://iam.googleapis.com/${poolName}/attribute.repository_id/${repositoryId}`;
-  removeMember(projectPolicy, `serviceAccount:${legacyServiceAccount}`);
-  for (const role of [
+  const deployRoles = [
     "roles/firebaserules.admin",
     "roles/datastore.indexAdmin",
     "roles/firebase.viewer",
     "roles/serviceusage.serviceUsageConsumer",
     "roles/serviceusage.serviceUsageViewer",
-  ]) {
-    mergeBinding(projectPolicy, role, repositoryPrincipal);
+  ];
+  const adminRole = "roles/iam.serviceAccountAdmin";
+  let projectPolicy = (await resourceManager.post(`projects/${projectId}:getIamPolicy`, {})).body;
+  const operatorAlreadyAdmin = (projectPolicy.bindings ?? []).some(
+    (binding) => binding.role === adminRole && (binding.members ?? []).includes(operator),
+  );
+  if (!operatorAlreadyAdmin) {
+    mergeBinding(projectPolicy, adminRole, operator);
+    await resourceManager.post(`projects/${projectId}:setIamPolicy`, { policy: projectPolicy });
+    await new Promise((resolve) => setTimeout(resolve, 5_000));
   }
-  await resourceManager.post(`projects/${projectId}:setIamPolicy`, { policy: projectPolicy });
 
-  console.log(JSON.stringify({ providerName, repositoryPrincipal }, null, 2));
+  try {
+    const serviceAccountPath = `projects/${projectId}/serviceAccounts/${serviceAccount}`;
+    if (!(await getOrNull(iam, serviceAccountPath))) {
+      await iam.post(`projects/${projectId}/serviceAccounts`, {
+        accountId: serviceAccountId,
+        serviceAccount: {
+          displayName: "GitHub Firebase Policy Deployer",
+          description: "Keyless GitHub Actions identity for Firestore rules and indexes.",
+        },
+      });
+    }
+
+    const serviceAccountPolicy = (await iam.post(`${serviceAccountPath}:getIamPolicy`, {})).body;
+    mergeBinding(serviceAccountPolicy, "roles/iam.workloadIdentityUser", repositoryPrincipal);
+    await iam.post(`${serviceAccountPath}:setIamPolicy`, { policy: serviceAccountPolicy });
+
+    projectPolicy = (await resourceManager.post(`projects/${projectId}:getIamPolicy`, {})).body;
+    for (const role of deployRoles) {
+      removeBindingMember(projectPolicy, role, repositoryPrincipal);
+      mergeBinding(projectPolicy, role, `serviceAccount:${serviceAccount}`);
+    }
+    if (!operatorAlreadyAdmin) removeBindingMember(projectPolicy, adminRole, operator);
+    await resourceManager.post(`projects/${projectId}:setIamPolicy`, { policy: projectPolicy });
+  } catch (error) {
+    if (!operatorAlreadyAdmin) {
+      projectPolicy = (await resourceManager.post(`projects/${projectId}:getIamPolicy`, {})).body;
+      removeBindingMember(projectPolicy, adminRole, operator);
+      await resourceManager.post(`projects/${projectId}:setIamPolicy`, { policy: projectPolicy });
+    }
+    throw error;
+  }
+
+  console.log(JSON.stringify({ providerName, serviceAccount }, null, 2));
 }
 
 main().catch((error) => {
