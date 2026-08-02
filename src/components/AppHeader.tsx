@@ -15,10 +15,16 @@ import {
   Settings,
   Share2,
   Sparkles,
+  SunMoon,
 } from "lucide-react";
 import type { WorkspaceState } from "@mikejhill/portable-document-core";
 import type { ProblemDefinitionDocumentV1, ProblemDefinitionSummary } from "../domain/model";
 import type { WorkspaceControllerState } from "../services/workspace-controller";
+import {
+  getThemePreference,
+  setThemePreference,
+  type ThemePreference,
+} from "../services/theme-service";
 
 type HeaderProps = {
   readonly workspace: Extract<
@@ -55,6 +61,7 @@ export function AppHeader({
   onToggleOutline,
 }: HeaderProps) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [theme, setTheme] = useState<ThemePreference>(getThemePreference);
   const storageLabel =
     workspace.source === "device"
       ? "On This Device"
@@ -177,6 +184,24 @@ export function AppHeader({
               >
                 <FileDown size={16} /> Export JSON
               </button>
+              <div className="theme-selector" role="none">
+                <label htmlFor="theme-preference">
+                  <SunMoon size={16} /> Theme
+                </label>
+                <select
+                  id="theme-preference"
+                  value={theme}
+                  onChange={(event) => {
+                    const preference = event.target.value as ThemePreference;
+                    setTheme(preference);
+                    setThemePreference(preference);
+                  }}
+                >
+                  <option value="system">System</option>
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
             </div>
           ) : null}
         </div>
