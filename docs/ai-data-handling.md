@@ -1,6 +1,6 @@
 # AI Data Handling
 
-AI assistance is optional, signed-in-only, and invoked by an explicit action after disclosure. The current narratives, inbox, typed elements, and relations are sent to Firebase AI Logic using a Flash-class model selected by Remote Config.
+AI assistance is optional, signed-in-only, and invoked by an explicit action after disclosure. The current narratives, inbox, typed elements, and relations are sent to Firebase AI Logic using a Flash-class model selected by Remote Config. App Check is initialized only for that explicit AI action and uses a domain-restricted reCAPTCHA Enterprise score key.
 
 Document text is untrusted model input. The system instruction prohibits following embedded instructions, tool execution, invented URLs, and mutation. Structured responses are bounded and validated locally with Zod. Unknown IDs, invalid entity kinds, invalid relationships, excessive text, and malformed command payloads are discarded.
 
