@@ -1,0 +1,10 @@
+{
+  "firestore": {
+    "rules": "node_modules/@mikejhill/portable-document-firebase/rules/firestore.rules",
+    "indexes": "node_modules/@mikejhill/portable-document-firebase/rules/firestore.indexes.json"
+  },
+  "emulators": {
+    "firestore": { "port": 8080 },
+    "ui": { "enabled": false }
+  }
+}
