@@ -30,11 +30,11 @@
     "@mikejhill/portable-document-react": "0.1.0",
     "@mikejhill/portable-document-sync": "0.1.0",
     "firebase": "12.17.0",
-    "lucide-react": "0.468.0",
+    "lucide-react": "1.28.0",
     "lz-string": "1.5.0",
     "mermaid": "11.16.0",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "zod": "3.25.76"
   },
   "devDependencies": {
@@ -47,7 +47,7 @@
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.1",
     "@types/node": "24.10.0",
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.4",
     "@vitest/coverage-v8": "4.1.0",
