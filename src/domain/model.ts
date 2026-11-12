@@ -81,7 +81,7 @@ export const modelEntitySchema = z.object({
   verificationMethod: z.string().max(5_000).default(""),
   evidenceIds: z.array(z.string().uuid()).max(100).default([]),
   stakeholderIds: z.array(z.string().uuid()).max(100).default([]),
-  attributes: z.record(z.string().max(5_000)).default({}),
+  attributes: z.record(z.string(), z.string().max(5_000)).default({}),
 });
 
 export type ModelEntity = z.infer<typeof modelEntitySchema>;
