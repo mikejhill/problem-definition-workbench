@@ -1,11 +1,7 @@
 import type { EntityKind, ModelEntity, ProblemDefinitionDocumentV1 } from "./model";
 
 export type DiagnosticCategory =
-  | "missing-structure"
-  | "blocker"
-  | "traceability"
-  | "contradiction"
-  | "enrichment";
+  "missing-structure" | "blocker" | "traceability" | "contradiction" | "enrichment";
 export type DiagnosticSeverity = "error" | "warning" | "info";
 
 export type ModelDiagnostic = {

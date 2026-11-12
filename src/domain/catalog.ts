@@ -2,12 +2,7 @@ import type { EntityKind, NarrativeSection, OutputTemplate, RelationType } from 
 
 export type SectionDefinition = {
   readonly id:
-    | EntityKind
-    | NarrativeSection
-    | "identification"
-    | "inbox"
-    | "relationships"
-    | "attachments";
+    EntityKind | NarrativeSection | "identification" | "inbox" | "relationships" | "attachments";
   readonly label: string;
   readonly group: string;
   readonly description: string;
